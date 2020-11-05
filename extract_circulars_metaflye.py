@@ -6,10 +6,11 @@ minlength = 1000
 maxlength = 1000000
 mincov = 5
 
-def extract_circulars(info_file):
+def extract_circulars(info_file, output_file):
     #fasta = sys.argv[2]
     contigs_list = []
-    for line in open(info, 'r'):
+    fo = open(output_file, "w")
+    for line in open(info_file, 'r'):
         arr = line.split()
         if len(arr) < 4:
             continue
@@ -19,15 +20,15 @@ def extract_circulars(info_file):
         cov = float(arr[2])
         circ = arr[3]
         if arr[3] == "Y" and length > minlength and length < maxlength and cov >mincov:
-            print (arr[0])
+            fo.write(arr[0] + "\n")
 #for line in goodf:
 #    good.add(line.strip())
 #res = unique.intersection(good)
 #print res
 #print len(res)
-
-if len(sys.argv) != 2:
-    print ("Usage: " + sys.argv[0] + " <assembly_info.txt file from metaflye assembly>")
-    exit()
-info = sys.argv[1]
-extract_circulars(info)
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print ("Usage: " + sys.argv[0] + " <assembly_info.txt file from metaflye assembly> <output_file>")
+        exit()
+    info = sys.argv[1]
+    extract_circulars(info)

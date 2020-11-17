@@ -2,10 +2,11 @@
 import sys
 import os
 import random
+import logging
 from Bio.Seq import Seq
 neighbours = {}
 global_used = set()
-sequences = {}
+segments = {}
 links = {}
 
 
@@ -60,7 +61,7 @@ def get_ids(link_name):
 def get_small_component(id, min_size, max_size, min_cov):
     global neighbours
     global global_used
-    global sequences
+    global segments
     used = set()
     if id in global_used:
         return used
@@ -77,19 +78,19 @@ def get_small_component(id, min_size, max_size, min_cov):
     total_len = 0
     total_cov = 0.0
     for f in used:
-        total_len += sequences[f].length
-        total_cov += sequences[f].length * sequences[f].cov
+        total_len += segments[f].length
+        total_cov += segments[f].length * segments[f].cov
     total_cov /= total_len
 #    if total_len >= low_cutoff and total_len <= high_cutoff and total_cov > min_coverage: 
 #    if total_len >= ids[id].length and total_len > 1000 and total_cov > 10 and len(used) < 2:
-    if total_len < max_size and total_len > min_size and total_cov > min_cov and total_len > sequences[id].length:
+    if total_len < max_size and total_len > min_size and total_cov > min_cov and total_len > segments[id].length:
         return used
     else:
         return set()
 #params: fastg file, ids file, max component size
 #looks for ids that contains in small connected components of size 1< SIZE <= max_cutoff 
 def construct_graph(edge_component):
-    global sequences
+    global segments
     global links
     global edges_to_id
     vertices = {}
@@ -104,8 +105,8 @@ def construct_graph(edge_component):
         edges_to_id[e] = edge_count
         vertices[edge_count * 4].next.append(edge_count * 4 + 1)
         vertices[edge_count * 4 + 2].next.append(edge_count * 4 + 3)
-        vertices[edge_count * 4 + 1].seq = sequences[e].seq
-        vertices[edge_count * 4 + 3].seq = rc(sequences[e].seq)
+        vertices[edge_count * 4 + 1].seq = segments[e].seq
+        vertices[edge_count * 4 + 3].seq = rc(segments[e].seq)
         vertices[edge_count * 4 + 3].orientation = "-"
 
         edge_count += 1
@@ -138,14 +139,14 @@ def construct_graph(edge_component):
     return vertices
 
 def get_start_end_vertex(edge_component, vertices):
-    global sequences
+    global segments
     global links
     global edges_to_id
     max_l = 0
     max_e = ""
     for e in edge_component:
-        if sequences[e].length > max_l:
-            max_l = sequences[e].length
+        if segments[e].length > max_l:
+            max_l = segments[e].length
             max_e = e
     return [edges_to_id[max_e] * 4 + 1, edges_to_id[max_e] * 4]
 
@@ -177,11 +178,15 @@ def run_dikstra(vertices, source, target):
                 prev[next_u] = u
     return dist, prev
 
-good = set()
+if len (sys.argv) != 6:
+    print(f'Script for a random traversal of suspicious components(for their further examination on virality)')
+    print(f'Usage: {sys.argv[0]} <min_component_length>  <max_component_length> <min_coverage> <output file>')
+
 low_cutoff = int (sys.argv[2])
 high_cutoff = int (sys.argv[3])
 min_coverage = float(sys.argv[4])
 resf = open(sys.argv[5], "w")
+good = set()
 
 for line in open(sys.argv[1], 'r'):
     if line[0] == "L":
@@ -201,11 +206,11 @@ for line in open(sys.argv[1], 'r'):
         arr = line.split()
         length = len(arr[2])
         cov = arr[3].split(':')[2]
-        sequences[arr[1]] = node_stat(length, cov, arr[2])
+        segments[arr[1]] = node_stat(length, cov, arr[2])
         neighbours[arr[1]] = set()
 unique = set()
 total = 0
-for seq_id in sequences:
+for seq_id in segments:
     s =  get_small_component(seq_id, low_cutoff, high_cutoff, min_coverage)
     if len (s) > 0:
         print (f'exporing small component of edges {s}')
@@ -213,13 +218,13 @@ for seq_id in sequences:
 
         [source, target] = get_start_end_vertex(s, vertices)
         dist, prev = run_dikstra (vertices,source, target)
-        if "edge_1" in s:
-            for v in vertices:
-                print (vertices[v])
-            for e in s:
-                print (links[e])
-            print (f' source {source} target {target}')
-            print (f' {dist} {prev}')
+#        if "edge_1" in s:
+#            for v in vertices:
+#                print (vertices[v])
+#            for e in s:
+#                print (links[e])
+#            print (f' source {source} target {target}')
+#            print (f' {dist} {prev}')
 
         path = []
         if prev[target] != -1:
@@ -228,20 +233,25 @@ for seq_id in sequences:
                 target = prev[target]
             path.append(source)
             path.reverse()
-            res = ""
-            header = ""
+#            exit()
+            sum_len = 0
+            for e in s:
+                sum_len += segments[e].length
+            res =""
+            for v in path:
+                res += vertices[v].seq
+            path_len = len(res)
+            header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
             for v in path:
                 print (f'{v} {vertices[v].edge}')
                 if v%2 == 1:
-
                     header += vertices[v].edge
                     header += vertices[v].orientation
-
-                res += vertices[v].seq
-#            exit()
-            print(header)
-            resf.write(">" + header + "\n")
-            resf.write(res + "\n")
+            if sum_len * 0.7 > path_len:
+                print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
+            else:
+                resf.write(">" + header + "\n")
+                resf.write(res + "\n")
         else:
             print ("no path from source to sink")
 #print (total)

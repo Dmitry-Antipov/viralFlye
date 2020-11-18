@@ -8,7 +8,7 @@ neighbours = {}
 global_used = set()
 segments = {}
 links = {}
-
+inf = 1e8
 
 #for each edge 4 vertices
 edges_to_id = {}
@@ -25,6 +25,10 @@ class Vertex:
         self.orientation = "+"
     def __str__(self):
         return (f'edge {self.edge}, id {self.id}, next: {self.next} ')
+#starts, end, rc_start, rc_end   0,1,2,3, rc_id = 3 - id
+
+    def get_rc_id(self):
+        return (self.id // 4) * 4 + 3 - (self.id % 4)
 class node_stat:
     def __init__ (self, length, cov, seq):
         self.length = int(length)
@@ -57,6 +61,7 @@ def get_ids(link_name):
     arr = link_name.split()
     res = [arr[1], arr[3]]    
     return res
+
 
 def get_small_component(id, min_size, max_size, min_cov):
     global neighbours
@@ -145,14 +150,16 @@ def get_start_end_vertex(edge_component, vertices):
     max_l = 0
     max_e = ""
     for e in edge_component:
+        print (f'edge {e} length {segments[e].length}')
         if segments[e].length > max_l:
             max_l = segments[e].length
             max_e = e
+    print (max_e)
     return [edges_to_id[max_e] * 4 + 1, edges_to_id[max_e] * 4]
 
-def run_dikstra(vertices, source, target):
+def run_dikstra(vertices, source):
+    global inf
     q = set()
-    inf = 1e8
     dist = {}
     prev = {}
     for v in vertices:
@@ -177,6 +184,30 @@ def run_dikstra(vertices, source, target):
                 dist[next_u] = alt
                 prev[next_u] = u
     return dist, prev
+
+def get_furtherst_id(dist):
+    global inf
+    max_d = -1
+    max_v = -1
+    for v in dist:
+        if dist[v] > max_d and dist[v] < inf:
+            max_d = dist[v]
+            max_v = v
+    return max_v
+
+def restore_path(prev, source, target):
+    path = []
+    print (prev)
+    print (f'{source} {target} {prev[target]}')
+
+    while target != source:
+        if prev[target] == -1:
+            print('error from dijkstra')
+            exit(0)
+        path.append(target)
+        target = prev[target]
+    path.reverse()
+    return path
 
 if len (sys.argv) != 6:
     print(f'Script for a random traversal of suspicious components(for their further examination on virality)')
@@ -217,43 +248,59 @@ for seq_id in segments:
         vertices = construct_graph(s)
 
         [source, target] = get_start_end_vertex(s, vertices)
-        dist, prev = run_dikstra (vertices,source, target)
-#        if "edge_1" in s:
-#            for v in vertices:
-#                print (vertices[v])
-#            for e in s:
-#                print (links[e])
-#            print (f' source {source} target {target}')
-#            print (f' {dist} {prev}')
-
-        path = []
-        if prev[target] != -1:
-            while target != source:
-                path.append(target)
-                target = prev[target]
-            path.append(source)
-            path.reverse()
-#            exit()
-            sum_len = 0
+        dist, prev = run_dikstra (vertices,source)
+        if "edge_56" in s:
+            for v in vertices:
+                print (vertices[v])
             for e in s:
-                sum_len += segments[e].length
-            res =""
-            for v in path:
-                res += vertices[v].seq
-            path_len = len(res)
-            header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
-            for v in path:
-                print (f'{v} {vertices[v].edge}')
-                if v%2 == 1:
-                    header += vertices[v].edge
-                    header += vertices[v].orientation
-            if sum_len * 0.7 > path_len:
-                print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
-            else:
-                resf.write(">" + header + "\n")
-                resf.write(res + "\n")
+                print (links[e])
+            print (f' source {source} target {target}')
+            print (f' {dist} {prev}')
+        if prev[target] != -1:
+            path = restore_path(prev, source, target)
+            path.append(source)
+# longest path containing longest edge with no cycles:
         else:
-            print ("no path from source to sink")
+            print (dist)
+            new_end = get_furtherst_id(dist)
+            print (f'new_end {new_end}')
+            forward_path = restore_path(prev, source, new_end)
+            target_rc = vertices[target].get_rc_id()
+            print (f'target target_rc {target} {target_rc}')
+            [new_dist, new_prev] = run_dikstra(vertices, target_rc)
+            print (new_dist)
+            new_start_rc = get_furtherst_id(new_dist)
+            print(f'new_start_rc {new_start_rc}')
+            print (f'forward_path {forward_path}')
+            backward_path = restore_path(new_prev, target_rc, new_start_rc)
+            print(f'backward_path {backward_path}')
+            backward_path_rc = []
+            for p in backward_path:
+                backward_path_rc.append(vertices[p].get_rc_id())
+            backward_path_rc.reverse()
+            backward_path_rc.append(source)
+            backward_path_rc.extend(forward_path)
+            path = backward_path_rc
+#            exit()
+        sum_len = 0
+        for e in s:
+            sum_len += segments[e].length
+        res = ""
+        for v in path:
+            print (v)
+            res += vertices[v].seq
+        path_len = len(res)
+        header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
+        for v in path:
+            print (f'{v} {vertices[v].edge}')
+            if v%2 == 1:
+                header += vertices[v].edge
+                header += vertices[v].orientation
+        if sum_len * 0.5 > path_len:
+            print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
+        else:
+            resf.write(">" + header + "\n")
+            resf.write(res + "\n")
 #print (total)
 #for f in unique:
 #    print (f)

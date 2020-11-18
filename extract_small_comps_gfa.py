@@ -4,17 +4,10 @@ import os
 import random
 import logging
 from Bio.Seq import Seq
-neighbours = {}
-global_used = set()
-segments = {}
-links = {}
 inf = 1e8
 
 #for each edge 4 vertices
-edges_to_id = {}
-min_interesting_size = 1000
-max_interesting_size = 500000
-min_coverage = 5
+
 class Vertex:
     def __init__ (self, ver_id, edge_id):
 #vertices are segments starts & ends, edges are either links(empty seq) or segments (stored in segments ends)
@@ -63,10 +56,7 @@ def get_ids(link_name):
     return res
 
 
-def get_small_component(id, min_size, max_size, min_cov):
-    global neighbours
-    global global_used
-    global segments
+def get_small_component(id, min_size, max_size, min_cov, neighbours, global_used, segments):
     used = set()
     if id in global_used:
         return used
@@ -94,10 +84,7 @@ def get_small_component(id, min_size, max_size, min_cov):
         return set()
 #params: fastg file, ids file, max component size
 #looks for ids that contains in small connected components of size 1< SIZE <= max_cutoff 
-def construct_graph(edge_component):
-    global segments
-    global links
-    global edges_to_id
+def construct_graph(edge_component, segments, links):
     vertices = {}
     id_count = 0
     edge_count = 0
@@ -141,12 +128,9 @@ def construct_graph(edge_component):
             end_id = edges_to_id[edge_end]* 4 + 3 - link_end_shift
             print(f'from link {l} adding edge {end_id} {start_id} ')
             vertices[end_id].next.append(start_id)
-    return vertices
+    return [vertices, edges_to_id]
 
-def get_start_end_vertex(edge_component, vertices):
-    global segments
-    global links
-    global edges_to_id
+def get_start_end_vertex(edge_component, segments, edges_to_id):
     max_l = 0
     max_e = ""
     for e in edge_component:
@@ -209,98 +193,106 @@ def restore_path(prev, source, target):
     path.reverse()
     return path
 
-if len (sys.argv) != 6:
-    print(f'Script for a random traversal of suspicious components(for their further examination on virality)')
-    print(f'Usage: {sys.argv[0]} <min_component_length>  <max_component_length> <min_coverage> <output file>')
+def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverage, output_file):
+    neighbours = {}
+    global_used = set()
+    segments = {}
+    links = {}
 
-low_cutoff = int (sys.argv[2])
-high_cutoff = int (sys.argv[3])
-min_coverage = float(sys.argv[4])
-resf = open(sys.argv[5], "w")
-good = set()
+    resf = open(output_file, "w")
+    good = set()
+    for line in open(input_file, 'r'):
+        if line[0] == "L":
+            arr = get_ids(line)
+            if len(arr) == 0:
+                print (line)
+                exit()
+            neighbours[arr[0]].add(arr[1])
+            neighbours[arr[1]].add(arr[0])
+            if not arr[0] in links:
+                links[arr[0]] = []
+            if not arr[1] in links:
+                links[arr[1]] = []
+            links[arr[0]].append(line)
 
-for line in open(sys.argv[1], 'r'):
-    if line[0] == "L":
-        arr = get_ids(line)
-        if len(arr) == 0:
-            print (line)
-            exit()
-        neighbours[arr[0]].add(arr[1])
-        neighbours[arr[1]].add(arr[0])
-        if not arr[0] in links:
-            links[arr[0]] = []
-        if not arr[1] in links:
-            links[arr[1]] = []
-        links[arr[0]].append(line)
+        elif line[0] == "S":
+            arr = line.split()
+            length = len(arr[2])
+            cov = arr[3].split(':')[2]
+            segments[arr[1]] = node_stat(length, cov, arr[2])
+            neighbours[arr[1]] = set()
+    unique = set()
+    total = 0
+    for seq_id in segments:
+        s =  get_small_component(seq_id, low_cutoff, high_cutoff, min_coverage, neighbours, global_used, segments)
+        if len (s) > 0:
+            print (f'exporing small component of edges {s}')
+            vertices, edges_to_id = construct_graph(s, segments, links)
 
-    elif line[0] == "S":
-        arr = line.split()
-        length = len(arr[2])
-        cov = arr[3].split(':')[2]
-        segments[arr[1]] = node_stat(length, cov, arr[2])
-        neighbours[arr[1]] = set()
-unique = set()
-total = 0
-for seq_id in segments:
-    s =  get_small_component(seq_id, low_cutoff, high_cutoff, min_coverage)
-    if len (s) > 0:
-        print (f'exporing small component of edges {s}')
-        vertices = construct_graph(s)
-
-        [source, target] = get_start_end_vertex(s, vertices)
-        dist, prev = run_dikstra (vertices,source)
-        if "edge_56" in s:
-            for v in vertices:
-                print (vertices[v])
+            [source, target] = get_start_end_vertex(s, segments, edges_to_id)
+            dist, prev = run_dikstra (vertices, source)
+            if "edge_56" in s:
+                for v in vertices:
+                    print (vertices[v])
+                for e in s:
+                    print (links[e])
+                print (f' source {source} target {target}')
+                print (f' {dist} {prev}')
+            if prev[target] != -1:
+                path = restore_path(prev, source, target)
+                path.append(source)
+    # longest path containing longest edge with no cycles:
+            else:
+                print (dist)
+                new_end = get_furtherst_id(dist)
+                print (f'new_end {new_end}')
+                forward_path = restore_path(prev, source, new_end)
+                target_rc = vertices[target].get_rc_id()
+                print (f'target target_rc {target} {target_rc}')
+                [new_dist, new_prev] = run_dikstra(vertices, target_rc)
+                print (new_dist)
+                new_start_rc = get_furtherst_id(new_dist)
+                print(f'new_start_rc {new_start_rc}')
+                print (f'forward_path {forward_path}')
+                backward_path = restore_path(new_prev, target_rc, new_start_rc)
+                print(f'backward_path {backward_path}')
+                backward_path_rc = []
+                for p in backward_path:
+                    backward_path_rc.append(vertices[p].get_rc_id())
+                backward_path_rc.reverse()
+                backward_path_rc.append(source)
+                backward_path_rc.extend(forward_path)
+                path = backward_path_rc
+    #            exit()
+            sum_len = 0
             for e in s:
-                print (links[e])
-            print (f' source {source} target {target}')
-            print (f' {dist} {prev}')
-        if prev[target] != -1:
-            path = restore_path(prev, source, target)
-            path.append(source)
-# longest path containing longest edge with no cycles:
-        else:
-            print (dist)
-            new_end = get_furtherst_id(dist)
-            print (f'new_end {new_end}')
-            forward_path = restore_path(prev, source, new_end)
-            target_rc = vertices[target].get_rc_id()
-            print (f'target target_rc {target} {target_rc}')
-            [new_dist, new_prev] = run_dikstra(vertices, target_rc)
-            print (new_dist)
-            new_start_rc = get_furtherst_id(new_dist)
-            print(f'new_start_rc {new_start_rc}')
-            print (f'forward_path {forward_path}')
-            backward_path = restore_path(new_prev, target_rc, new_start_rc)
-            print(f'backward_path {backward_path}')
-            backward_path_rc = []
-            for p in backward_path:
-                backward_path_rc.append(vertices[p].get_rc_id())
-            backward_path_rc.reverse()
-            backward_path_rc.append(source)
-            backward_path_rc.extend(forward_path)
-            path = backward_path_rc
-#            exit()
-        sum_len = 0
-        for e in s:
-            sum_len += segments[e].length
-        res = ""
-        for v in path:
-            print (v)
-            res += vertices[v].seq
-        path_len = len(res)
-        header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
-        for v in path:
-            print (f'{v} {vertices[v].edge}')
-            if v%2 == 1:
-                header += vertices[v].edge
-                header += vertices[v].orientation
-        if sum_len * 0.5 > path_len:
-            print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
-        else:
-            resf.write(">" + header + "\n")
-            resf.write(res + "\n")
+                sum_len += segments[e].length
+            res = ""
+            for v in path:
+                print (v)
+                res += vertices[v].seq
+            path_len = len(res)
+            header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
+            for v in path:
+                print (f'{v} {vertices[v].edge}')
+                if v%2 == 1:
+                    header += vertices[v].edge
+                    header += vertices[v].orientation
+            if sum_len * 0.3 > path_len:
+                print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
+            else:
+                resf.write(">" + header + "\n")
+                resf.write(res + "\n")
+
+if __name__ == "__main__":
+    if len (sys.argv) != 6:
+        print(f'Script for a random traversal of suspicious components(for their further examination on virality)')
+        print(f'Usage: {sys.argv[0]} <input_file> <min_component_length>  <max_component_length> <min_coverage> <output file>')
+        exit(0)
+    low_cutoff = int (sys.argv[2])
+    high_cutoff = int (sys.argv[3])
+    min_coverage = float(sys.argv[4])
+    extract_paths_in_components(sys.argv[1], low_cutoff, high_cutoff, min_coverage, sys.argv[5])
 #print (total)
 #for f in unique:
 #    print (f)

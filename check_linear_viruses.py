@@ -5,6 +5,7 @@ import random
 from scipy import signal
 import pysam
 import numpy as np
+from os.path import join
 from matplotlib import pyplot as plt
 '''
 import matplotlib.pyplot as plt
@@ -34,9 +35,9 @@ sampling_size = 20
 
 def split_multifasta(infile, outdir):
     with open(infile, 'r') as input:
-      
+        noteof = True
         line1 = next(input)
-        while (line1):
+        while line1 and noteof:
             curname = ""
             if len(line1) > 0 and line1[0] == '>':
                 curname = line1.split()[0][1:] + ".fasta"
@@ -46,9 +47,11 @@ def split_multifasta(infile, outdir):
                     try:
                         line1 = next(input)
                     except:
+                        noteof = False
                         break
                     if (not line1) or len(line1) == 0 or line1[0] == '>':
                         break 
+    print("Splitted")
 
 
 def extract_suspicious_depth(depth_file):
@@ -81,10 +84,10 @@ def extract_suspicious_depth(depth_file):
            print (f'{i + window_size} {ratios[i]} left')
            good_left.append(i + window_size)
     if len(good_right) < 1 or len(good_left) < 1:
-        print('suspicious repeats not found')
+        print('suspicious breakpoints not found')
         return [-1, -1, genome_len]
     elif len(good_right) > 1 or len(good_left) > 1:
-        print('multiple suspicious repeats found')
+        print('multiple suspicious coverage breakpoints found')
         return [-1, -1, genome_len]
     else:
         left = good_left[0]
@@ -102,26 +105,25 @@ def extract_suspicious_depth(depth_file):
     return []
 
 
-def count_traversing_fraction (start_pos, end_pos, bamfile):
+def count_traversing_fraction (start_pos, end_pos, bamfile, name):
     traversing = 0
-#TODO: name
-    for read in bamfile.fetch('MK415399.1', start_pos, end_pos):
+    for read in bamfile.fetch(name , start_pos, end_pos):
         if start_pos - epsilon > read.reference_start and end_pos + epsilon < read.reference_end :
             traversing += 1
 
 
     count = 0
-    for read in bamfile.fetch('MK415399.1', (start_pos + end_pos) / 2, (start_pos + end_pos + 2) / 2 ):
+    for read in bamfile.fetch(name, (start_pos + end_pos) / 2, (start_pos + end_pos + 2) / 2 ):
         count += 1
     print (f' traversing {traversing} of {count}')
     return [traversing, count]
 
-def check (start_pos, end_pos, bam, genome_length):
+def check (start_pos, end_pos, bam, genome_length, name):
     bamfile = pysam.AlignmentFile(bam, "rb")
     if genome_length < (end_pos - start_pos) * 2:
         print('Suspicious region longer than half of genome')
         return False
-    [traversing, count] = count_traversing_fraction(start_pos, end_pos, bamfile)
+    [traversing, count] = count_traversing_fraction(start_pos, end_pos, bamfile, name)
     sample = 0
     random_traversing = 0
     random_count = 0
@@ -131,7 +133,7 @@ def check (start_pos, end_pos, bam, genome_length):
         if check_start > start_pos - epsilon and check_start < end_pos + epsilon:
             continue
         check_end = check_start + end_pos - start_pos
-        ttraverse, tcount = count_traversing_fraction(check_start, check_end, bamfile)
+        ttraverse, tcount = count_traversing_fraction(check_start, check_end, bamfile, name)
         random_traversing += ttraverse
         random_count += tcount
         sample += 1
@@ -147,21 +149,23 @@ def prepare_index_and_depth(circulars, reads, workdir):
 
     os.makedirs(workdir, exist_ok=True)
     split_multifasta(circulars, workdir)
-    for contig in workdir:
+    for contig in os.listdir(workdir):
+        print (contig)
         if contig.split('.')[-1] == "fasta":
             full_contig = join(workdir, contig)
             name = contig.split('.')[0]
-            bam_file = {join(workdir, name + ".bam")}
+            bam_file = join(workdir, name + ".bam")
             if not os.path.exists(bam_file):
+                print (f'Running minimap for {contig}')
                 bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only {full_contig} {reads} | samtools sort -o {bam_file}'
                 os.system(bam_line)
-            
+                os.system (f'samtools index {bam_file}')            
             depth_file = join(workdir, name +".depth")
             depth_line = f'samtools depth -a {bam_file} >  {depth_file}'
             os.system(depth_line)
             [left, right, genome_len] = extract_suspicious_depth(depth_file)
             if left !=  -1:
-                check(left, right, bam_file, genome_len)
+                check(left, right, bam_file, genome_len, name)
 #    minimap2 -x map-pb -a -t 30 --sam-hit-only sample.fa reads.fastq.gz | samtools sort -o output.bam
 
 

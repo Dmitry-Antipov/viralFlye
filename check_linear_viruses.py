@@ -149,6 +149,7 @@ def prepare_index_and_depth(circulars, reads, workdir):
 
     os.makedirs(workdir, exist_ok=True)
     split_multifasta(circulars, workdir)
+    res = open(join(workdir, "linears.txt"), 'w')
     for contig in os.listdir(workdir):
         print (contig)
         if contig.split('.')[-1] == "fasta":
@@ -164,8 +165,9 @@ def prepare_index_and_depth(circulars, reads, workdir):
             depth_line = f'samtools depth -a {bam_file} >  {depth_file}'
             os.system(depth_line)
             [left, right, genome_len] = extract_suspicious_depth(depth_file)
-            if left !=  -1:
-                check(left, right, bam_file, genome_len, name)
+            if left != -1:
+                if check(left, right, bam_file, genome_len, name):
+                    res.write(f'{name} {left} {right} \n')
 #    minimap2 -x map-pb -a -t 30 --sam-hit-only sample.fa reads.fastq.gz | samtools sort -o output.bam
 
 

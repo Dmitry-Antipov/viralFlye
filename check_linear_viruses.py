@@ -33,18 +33,22 @@ sampling_size = 20
 #with -a option!!
 
 def split_multifasta(infile, outdir):
-    with open(infile) as input:
-        line1 = input.next()
-        while len(line1) > 0:
+    with open(infile, 'r') as input:
+      
+        line1 = next(input)
+        while (line1):
             curname = ""
             if len(line1) > 0 and line1[0] == '>':
                 curname = line1.split()[0][1:] + ".fasta"
                 out = open(os.path.join(outdir, curname), "w")
                 while True:
                     out.write(line1)
-                    line1 = input.next()
-                    if len(line1) == 0 or line1[0] == '>':
+                    try:
+                        line1 = next(input)
+                    except:
                         break
+                    if (not line1) or len(line1) == 0 or line1[0] == '>':
+                        break 
 
 
 def extract_suspicious_depth(depth_file):
@@ -169,10 +173,13 @@ def prepare_index_and_depth(circulars, reads, workdir):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print ("Usage: " + sys.argv[0] + " <assembly_info.txt file from metaflye assembly> <output_file>")
+        print ("Usage: " + sys.argv[0] + " <circular viral contigs> <reads>")
 #        exit()
+    prepare_index_and_depth(sys.argv[1], sys.argv[2], os.path.join(os.path.dirname(sys.argv[1]), "linear_check"))
+'''
     depth = sys.argv[1]
     bam = sys.argv[2]
     [left, right] = extract_suspicious_depth(depth)
     if left != -1:
         check(left, right, bam, 94435)
+'''

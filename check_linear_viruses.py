@@ -29,7 +29,7 @@ all based on https://charles.doffy.net/files/sp-review-2020.pdf
 
 jump = 1.3
 window_size = 100
-epsilon = 100
+epsilon = 10
 sampling_size = 20
 #with -a option!!
 

@@ -5,6 +5,10 @@ import random
 import logging
 from Bio.Seq import Seq
 inf = 1e8
+#TODO: add logging
+# https://github.com/ablab/IsoQuant/blob/master/isoquant.py#L248
+# https://docs.python.org/3/howto/logging.html
+
 
 #for each edge 4 vertices
 

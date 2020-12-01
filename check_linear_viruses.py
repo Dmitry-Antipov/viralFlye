@@ -180,7 +180,7 @@ def prepare_index_and_depth(circulars, reads, workdir):
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print ("Usage: " + sys.argv[0] + " <circular viral contigs> <reads>")
-#        exit()
+        exit()
     prepare_index_and_depth(sys.argv[1], sys.argv[2], os.path.join(os.path.dirname(sys.argv[1]), "linear_check"))
 '''
     depth = sys.argv[1]

@@ -66,10 +66,16 @@ for contig in contigs:
 SeqIO.write(circular_contigs, open(outdir+ "/spades_circular.fasta", mode='w'), 'fasta')
 
 
+print ("Selecting isolated components")
+os.system(f"python3 /Nancy/mrayko/viruses/metaFlye_viral/human_gut/extract_components_from_gfa.py {flye}/assembly_graph.gfa  > {outdir}/flye_isolated.fasta")
+os.system(f"python3 /Nancy/mrayko/viruses/metaFlye_viral/human_gut/extract_components_from_gfa.py {spades}/assembly_graph_with_scaffolds.gfa  > {outdir}/spades_isolated.fasta")
+os.system(f"cat {outdir}/flye_circular.fasta {outdir}/flye_isolated.fasta > {outdir}/flye_merged.fasta")
+os.system(f"cat {outdir}/spades_circular.fasta {outdir}/spades_isolated.fasta > {outdir}/spades_merged.fasta")
+
 # Intersection
 
-os.system(f"makeblastdb -dbtype nucl -in {outdir}/spades_circular.fasta -out {outdir}/spades_circ_db")
-os.system(f"blastn -query {outdir}/flye_circular.fasta -db {outdir}/spades_circ_db -outfmt \"6 qseqid sseqid qlen slen length pident evalue qcovs qcovhsp\" -out {outdir}/blast_circ.out")
+os.system(f"makeblastdb -dbtype nucl -in {outdir}/spades_merged.fasta -out {outdir}/spades_circ_db")
+os.system(f"blastn -query {outdir}/flye_merged.fasta -db {outdir}/spades_circ_db -outfmt \"6 qseqid sseqid qlen slen length pident evalue qcovs qcovhsp\" -out {outdir}/blast_circ.out")
 
 intersect_contigs = []
 intersect_names = set()
@@ -89,7 +95,8 @@ SeqIO.write(intersect_contigs, open(f"{outdir}/intersect.fasta", mode='w'), 'fas
 print ("Predicting viruses...")
 
 os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/intersect.fasta -p -o {outdir}/viralverify --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
-
+#os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/flye_merged.fasta -p -o {outdir}/viralverify_flye --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
+#os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/spades_merged.fasta -p -o {outdir}/viralverify_spades --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
 
 print ("Blasting...")
 

@@ -36,7 +36,12 @@ sampling_size = 20
 def split_multifasta(infile, outdir):
     with open(infile, 'r') as input:
         noteof = True
-        line1 = next(input)
+        line1= ""
+        try:
+            line1 = next(input)
+        except:
+            noteof = False
+            
         while line1 and noteof:
             curname = ""
             if len(line1) > 0 and line1[0] == '>':
@@ -166,8 +171,11 @@ def prepare_index_and_depth(circulars, reads, workdir):
             os.system(depth_line)
             [left, right, genome_len] = extract_suspicious_depth(depth_file)
             if left != -1:
-                if check(left, right, bam_file, genome_len, name):
-                    res.write(f'{name} {left} {right} \n')
+                try:
+                    if check(left, right, bam_file, genome_len, name):
+                        res.write(f'{name} {left} {right} {right - left} \n')
+                except:
+                    print(f'something wrong in pysam with contig {name}')
 #    minimap2 -x map-pb -a -t 30 --sam-hit-only sample.fa reads.fastq.gz | samtools sort -o output.bam
 
 

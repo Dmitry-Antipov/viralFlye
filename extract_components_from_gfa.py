@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 
 len_min = 5000
@@ -25,7 +26,7 @@ for line in open(sys.argv[1]):
 
     elif t[0] == "L":
         links.add (t[1])
-
+#        links.add (t[3])
 for i in contigs_list:
     if i not in links:
         print (f">{i}_length_{contigs_list[i][1]}_cov_{contigs_list[i][2]}")

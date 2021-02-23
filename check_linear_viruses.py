@@ -162,11 +162,11 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
     bam_file = join(workdir,  "long_reads_realignment.bam")
     bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
     print(bam_line)
-    os.system(bam_line)
+#    os.system(bam_line)
     os.system(f'samtools index {bam_file}')
     for contig in contig_names:
         depth_file = join(workdir, f'{contig}.depth')
-        samtools_line = f'samtools view -b {bam_line} {contig} | samtools depth -a > {depth_file}'
+        samtools_line = f'samtools view -b {bam_file} {contig} | samtools depth -a > {depth_file}'
         print(samtools_line)
         os.system(samtools_line)
     exit()

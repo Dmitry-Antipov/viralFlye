@@ -7,8 +7,8 @@ def mean_completeness(input_file):
 
     threads = 20
     filename = os.path.splitext(input_file)[0]
-    os.system (f"export CHECKVDB=/Nancy/mrayko/Libs/checkv_db/checkv-db-v0.6")
-    os.system (f"/home/mrayko/miniconda3/bin/checkv end_to_end {input_file} checkv_{filename}  -t {threads}")
+#    os.system (f"export CHECKVDB=/Nancy/mrayko/Libs/checkv_db/checkv-db-v0.6")
+    os.system (f"/home/mrayko/miniconda3/bin/checkv end_to_end {input_file} checkv_{filename}  -t {threads} -d /Nancy/mrayko/Libs/checkv_db/checkv-db-v0.6")
 
     completeness = []
     for line in open (f"checkv_{filename}/quality_summary.tsv"):

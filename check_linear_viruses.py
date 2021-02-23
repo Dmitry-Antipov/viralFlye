@@ -150,11 +150,24 @@ def check (start_pos, end_pos, bam, genome_length, name):
         return False
 
 #TODO multiple reads files, other options for minimap
-def prepare_index_and_depth(circulars, reads, workdir):
+def prepare_index_and_depth(circulars, assembly, reads, workdir):
 
     os.makedirs(workdir, exist_ok=True)
+    contig_names = []
+    for line in open (circulars, 'r'):
+        if len(line) > 0 and line[0] == ">":
+            contig_names.append(line.strip()[1:])
     split_multifasta(circulars, workdir)
     res = open(join(workdir, "linears.txt"), 'w')
+    bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
+    os.system(bam_line)
+    os.system(f'samtools index {bam_file}')
+    for contig in contig_names:
+        depth_file = join(workdir, f'{contig}.depth')
+        samtools_line = f'samtools view -b {bam_line} {contig} | samtools depth -a > {depth_file}'
+        print(samtools_line)
+        os.system(samtools_line)
+'''
     for contig in os.listdir(workdir):
         print (contig)
         if contig.split('.')[-1] == "fasta":
@@ -183,13 +196,14 @@ def prepare_index_and_depth(circulars, reads, workdir):
 #    samtools sort sample.bam -o sample_sorted.bam # sort .bam file
 #    samtools index sample_sorted.bam              # create index (.bam.bai file)
 
+'''
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print ("Usage: " + sys.argv[0] + " <circular viral contigs> <reads>")
+    if len(sys.argv) != 4:
+        print ("Usage: " + sys.argv[0] + " <circular viral contigs> <all contigs> <reads>")
         exit()
-    prepare_index_and_depth(sys.argv[1], sys.argv[2], os.path.join(os.path.dirname(sys.argv[1]), "linear_check"))
+    prepare_index_and_depth(sys.argv[1], sys.argv[2], sys.argv[3], os.path.join(os.path.dirname(sys.argv[1]), "linear_check"))
 '''
     depth = sys.argv[1]
     bam = sys.argv[2]

@@ -159,7 +159,9 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
             contig_names.append(line.strip()[1:])
     split_multifasta(circulars, workdir)
     res = open(join(workdir, "linears.txt"), 'w')
+    bam_file = join(workdir,  "long_reads_realignment.bam")
     bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
+    print(bam_line)
     os.system(bam_line)
     os.system(f'samtools index {bam_file}')
     for contig in contig_names:
@@ -167,13 +169,13 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
         samtools_line = f'samtools view -b {bam_line} {contig} | samtools depth -a > {depth_file}'
         print(samtools_line)
         os.system(samtools_line)
+    exit()
 '''
     for contig in os.listdir(workdir):
         print (contig)
         if contig.split('.')[-1] == "fasta":
             full_contig = join(workdir, contig)
             name = contig.split('.')[0]
-            bam_file = join(workdir, name + ".bam")
             if not os.path.exists(bam_file):
                 print (f'Running minimap for {contig}')
                 bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only {full_contig} {reads} | samtools sort -o {bam_file}'

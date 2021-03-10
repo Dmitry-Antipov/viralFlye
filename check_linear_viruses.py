@@ -60,6 +60,8 @@ def split_multifasta(infile, outdir):
 
 
 def extract_suspicious_depth(depth_file):
+    print (f'Checking contig {os.path.basename(depth_file)} ...')
+
     depth = []
     genome_len = 0
     for line in open(depth_file, 'r'):
@@ -144,7 +146,7 @@ def check (start_pos, end_pos, bam, genome_length, name):
         sample += 1
 #TODO what if repeat is longer than read length
     if traversing * random_count <= count * random_traversing * 10:
-        print ("significantly less traversing , repeat confirmed")
+        print ("significantly less traversing, repeat confirmed")
         return True
     else:
         return False
@@ -157,19 +159,30 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
     for line in open (circulars, 'r'):
         if len(line) > 0 and line[0] == ">":
             contig_names.append(line.strip()[1:])
-    split_multifasta(circulars, workdir)
+#    split_multifasta(circulars, workdir)
     res = open(join(workdir, "linears.txt"), 'w')
     bam_file = join(workdir,  "long_reads_realignment.bam")
     bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
     print(bam_line)
-#    os.system(bam_line)
+    os.system(bam_line)
     os.system(f'samtools index {bam_file}')
     for contig in contig_names:
         depth_file = join(workdir, f'{contig}.depth')
-        samtools_line = f'samtools view -b {bam_file} {contig} | samtools depth -a > {depth_file}'
-        print(samtools_line)
+        bam_contig =  join(workdir, f'{contig}.bam')
+
+        samtools_line = f'samtools view -b {bam_file} {contig} > {bam_contig}; samtools index {bam_contig}'
+        depth_line = f'samtools depth -a {bam_contig} > {depth_file}'
+#        print(samtools_line)
         os.system(samtools_line)
-    exit()
+        os.system(depth_line)
+        [left, right, genome_len] = extract_suspicious_depth(depth_file)
+        if left != -1:
+            try:
+                if check(left, right, bam_contig, genome_len, contig):
+                    res.write(f'{contig} {left} {right} {right - left} \n')
+            except:
+                print(f'something wrong in pysam with contig {name}')
+
 '''
     for contig in os.listdir(workdir):
         print (contig)

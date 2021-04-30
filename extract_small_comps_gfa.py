@@ -88,6 +88,12 @@ def get_small_component(id, min_size, max_size, min_cov, neighbours, global_used
         return set()
 #params: fastg file, ids file, max component size
 #looks for ids that contains in small connected components of size 1< SIZE <= max_cutoff 
+
+
+def get_header_id(header):
+    pos = header.find("edge_")
+    return header[:pos]
+
 def construct_graph(edge_component, segments, links):
     vertices = {}
     id_count = 0
@@ -204,6 +210,16 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
     links = {}
 
     resf = open(output_file, "w")
+    stats_f = open(os.path.splitext(output_file)[0] + ".stats", "w" )
+    pred = {}
+    pred_file = os.path.dirname(output_file) + "/vv_comp_rerun/components_rerun_result_table.csv" 
+    if not os.path.exists(pred_file):
+        return
+
+    prediction_csv =  open(pred_file, "r")
+    for line in prediction_csv:
+        arr = line.split(',')
+        pred[get_header_id(arr[0])] = arr[1]
     good = set()
     for line in open(input_file, 'r'):
         if line[0] == "L":
@@ -235,13 +251,6 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
 
             [source, target] = get_start_end_vertex(s, segments, edges_to_id)
             dist, prev = run_dikstra (vertices, source)
-            if "edge_56" in s:
-                for v in vertices:
-                    print (vertices[v])
-                for e in s:
-                    print (links[e])
-                print (f' source {source} target {target}')
-                print (f' {dist} {prev}')
             if prev[target] != -1:
                 path = restore_path(prev, source, target)
                 path.append(source)
@@ -269,8 +278,10 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
                 path = backward_path_rc
     #            exit()
             sum_len = 0
+            total_cov = 0
             for e in s:
                 sum_len += segments[e].length
+                total_cov += segments[e].cov * segments[e].length
             res = ""
             for v in path:
                 print (v)
@@ -287,6 +298,10 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
             else:
                 resf.write(">" + header + "\n")
                 resf.write(res + "\n")
+                hdr = get_header_id(header)
+               
+                if hdr in pred and pred[hdr] == "Virus":
+                    stats_f.write(f'{header}\t{len(s)}\t{sum_len}\t{(total_cov/sum_len):.2f}\n')
 
 if __name__ == "__main__":
     if len (sys.argv) != 6:
@@ -297,6 +312,7 @@ if __name__ == "__main__":
     high_cutoff = int (sys.argv[3])
     min_coverage = float(sys.argv[4])
     extract_paths_in_components(sys.argv[1], low_cutoff, high_cutoff, min_coverage, sys.argv[5])
+    
 #print (total)
 #for f in unique:
 #    print (f)

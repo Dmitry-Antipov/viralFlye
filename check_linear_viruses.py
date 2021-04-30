@@ -6,8 +6,9 @@ from scipy import signal
 import pysam
 import numpy as np
 from os.path import join
-from matplotlib import pyplot as plt
 '''
+from matplotlib import pyplot as plt
+
 import matplotlib.pyplot as plt
 import ruptures as rpt
 import numpy as np
@@ -162,7 +163,7 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
 #    split_multifasta(circulars, workdir)
     res = open(join(workdir, "linears.txt"), 'w')
     bam_file = join(workdir,  "long_reads_realignment.bam")
-    bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
+    bam_line = f'minimap2  --split-prefix prf -x map-pb -a -t 30 --sam-hit-only --secondary=no {assembly} {reads} | samtools sort -o {bam_file}'
     print(bam_line)
     os.system(bam_line)
     os.system(f'samtools index {bam_file}')
@@ -191,7 +192,7 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
             name = contig.split('.')[0]
             if not os.path.exists(bam_file):
                 print (f'Running minimap for {contig}')
-                bam_line = f'minimap2 -x map-pb -a -t 30 --sam-hit-only {full_contig} {reads} | samtools sort -o {bam_file}'
+                bam_line = f'minimap2 --split-prefix prf -x map-pb -a -t 30 --sam-hit-only {full_contig} {reads} | samtools sort -o {bam_file}'
                 os.system(bam_line)
                 os.system (f'samtools index {bam_file}')            
             depth_file = join(workdir, name +".depth")

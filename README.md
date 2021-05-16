@@ -7,6 +7,7 @@ Requirements
 * prodigal
 * samtools
 * seqtk
+* minced
 * minimap2
 * [Flye](https://github.com/fenderglass/Flye) genome assembler 
 * [viralVerify](https://github.com/ablab/viralVerify)

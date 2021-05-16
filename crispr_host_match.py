@@ -31,13 +31,13 @@ def is_circular_knp(seq, min_match=50, max_match=200):
 
 
 print ("Keep contigs over 1 kb...")
-os.system (f"/Nancy/mrayko/Libs/seqtk/seqtk seq -L 1000 {flye}/assembly.fasta  > {outdir}/flye_assembly_1k.fasta")
-os.system (f"/Nancy/mrayko/Libs/seqtk/seqtk seq -L 1000 {spades}/scaffolds.fasta > {outdir}/spades_assembly_1k.fasta")
+os.system (f"seqtk seq -L 1000 {flye}/assembly.fasta  > {outdir}/flye_assembly_1k.fasta")
+os.system (f"seqtk seq -L 1000 {spades}/scaffolds.fasta > {outdir}/spades_assembly_1k.fasta")
 
 
 print ("Running minced...")
-os.system (f" /Nancy/mrayko/Libs/minced/minced  -spacers  {outdir}/flye_assembly_1k.fasta {outdir}/flye_minced_out")
-os.system (f" /Nancy/mrayko/Libs/minced/minced  -spacers  {outdir}/spades_assembly_1k.fasta {outdir}/spades_minced_out")
+os.system (f"minced  -spacers  {outdir}/flye_assembly_1k.fasta {outdir}/flye_minced_out")
+os.system (f"minced  -spacers  {outdir}/spades_assembly_1k.fasta {outdir}/spades_minced_out")
 
 
 print ("Selecting cirular contigs...")
@@ -67,8 +67,8 @@ SeqIO.write(circular_contigs, open(outdir+ "/spades_circular.fasta", mode='w'), 
 
 
 print ("Selecting isolated components")
-os.system(f"python3 /Nancy/mrayko/viruses/metaFlye_viral/human_gut/extract_components_from_gfa.py {flye}/assembly_graph.gfa  > {outdir}/flye_isolated.fasta")
-os.system(f"python3 /Nancy/mrayko/viruses/metaFlye_viral/human_gut/extract_components_from_gfa.py {spades}/assembly_graph_with_scaffolds.gfa  > {outdir}/spades_isolated.fasta")
+os.system(f"python3 {os.path.dirname(sys.argv[0])}/extract_components_from_gfa.py {flye}/assembly_graph.gfa  > {outdir}/flye_isolated.fasta")
+os.system(f"python3 {os.path.dirname(sys.argv[0])}/extract_components_from_gfa.py {spades}/assembly_graph_with_scaffolds.gfa  > {outdir}/spades_isolated.fasta")
 os.system(f"cat {outdir}/flye_circular.fasta {outdir}/flye_isolated.fasta > {outdir}/flye_merged.fasta")
 os.system(f"cat {outdir}/spades_circular.fasta {outdir}/spades_isolated.fasta > {outdir}/spades_merged.fasta")
 
@@ -94,9 +94,9 @@ SeqIO.write(intersect_contigs, open(f"{outdir}/intersect.fasta", mode='w'), 'fas
 
 print ("Predicting viruses...")
 
-os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/intersect.fasta -p -o {outdir}/viralverify --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
-#os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/flye_merged.fasta -p -o {outdir}/viralverify_flye --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
-#os.system(f"python /Nancy/mrayko/git_repos/viralVerify/viralverify.py -f {outdir}/spades_merged.fasta -p -o {outdir}/viralverify_spades --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
+os.system(f"viralverify.py -f {outdir}/intersect.fasta -p -o {outdir}/viralverify --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
+os.system(f"viralverify.py -f {outdir}/flye_merged.fasta -p -o {outdir}/viralverify_flye --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
+os.system(f"viralverify.py -f {outdir}/spades_merged.fasta -p -o {outdir}/viralverify_spades --hmm /Nancy/mrayko/db/pfam/Pfam-A.hmm -t 15")
 
 print ("Blasting...")
 

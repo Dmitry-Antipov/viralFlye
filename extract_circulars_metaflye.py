@@ -2,11 +2,11 @@
 import sys
 import os
 import random
-minlength = 5000
+#minlength = 5000
 maxlength = 1000000
 mincov = 10
 
-def extract_circulars(info_file, output_file):
+def extract_circulars(info_file, output_file, minlen_limit):
     #fasta = sys.argv[2]
     contigs_list = []
     fo = open(output_file, "w")
@@ -19,10 +19,10 @@ def extract_circulars(info_file, output_file):
         length = int(arr[1])
         cov = float(arr[2])
         circ = arr[3]
-        if arr[3] == "Y" and length > minlength and length < maxlength and cov >mincov:
+        if arr[3] == "Y" and length > minlen_limit and length < maxlength and cov >mincov:
             fo.write(arr[0] + "\n")
 
-def extract_linears(info_file, output_file):
+def extract_linears(info_file, output_file, minlen_limit):
     #fasta = sys.argv[2]
     contigs_list = []
     fo = open(output_file, "w")
@@ -38,7 +38,7 @@ def extract_linears(info_file, output_file):
         edge_seq = arr[7]
         edges = edge_seq.split(",")
         if edges[0] == "*" and edges[-1] == "*":
-            if length > minlength and length < maxlength and cov >mincov:
+            if length > minlen_limit and length < maxlength and cov >mincov:
                 fo.write(arr[0] + "\n")
 #                fo.write(edge_seq + "\n")
 #for line in goodf:

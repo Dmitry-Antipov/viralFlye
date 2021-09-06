@@ -40,9 +40,11 @@ Details can be found in viralverify and viralcomplete manual''',
     parser._action_groups.pop()
     required_args = parser.add_argument_group('required arguments')
     required_args.add_argument('--dir', required = True, help='metaFlye output directory')
-    required_args.add_argument('--hmm', help='Path to Pfam-A HMM database for viralVerify script')    
+    required_args.add_argument('--hmm', required = True, help='Path to Pfam-A HMM database for viralVerify script')    
     required_args.add_argument('--reads', help='Path to long reads')    
-    
+    optional_args = parser.add_argument_group('optional arguments')
+    optional_args.add_argument('--min_viral_length', default = 5000, help = 'minimal limit on the viral length under study, default 5k')    
+
     
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -62,7 +64,7 @@ def run_circular_vv (args):
                 stats = join(fullpath, "assembly_info.txt")
                 circulars = join(fullpath, "circulars.txt")
                 circ_fasta = join(fullpath, "circulars.fasta")
-                extract_circulars(stats, circulars)
+                extract_circulars(stats, circulars, int(args.min_viral_length))
                 seqtk_line = (f'seqtk subseq {contigs_all} {circulars} > {circ_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
@@ -82,7 +84,7 @@ def run_linear_vv (args):
                 stats = join(fullpath, "assembly_info.txt")
                 linears = join(fullpath, "linears.txt")
                 linears_fasta = join(fullpath, "linears.fasta")
-                extract_linears(stats, linears)
+                extract_linears(stats, linears, int (args.min_viral_length))
                 seqtk_line = (f'seqtk subseq {contigs_all} {linears} > {linears_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
@@ -153,7 +155,7 @@ def run_on_components (args):
 # and not os.path.exists(outdir):
 #                os.mkdir(outdir)
                 comp_fasta = join(fullpath, "components.fasta")
-                extract_paths_in_components(graph_all, 5000, 500000, 5, comp_fasta)
+                extract_paths_in_components(graph_all, 5000, 1000000, 10, comp_fasta)
                 vv_line =f"viralverify.py -f {comp_fasta} -o {outdir}  --hmm {args.hmm} -t 10"
                 print (vv_line)
                 os.system (vv_line)

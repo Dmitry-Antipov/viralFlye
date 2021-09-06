@@ -212,6 +212,7 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
     resf = open(output_file, "w")
     stats_f = open(os.path.splitext(output_file)[0] + ".stats", "w" )
     pred = {}
+    '''
     pred_file = os.path.dirname(output_file) + "/vv_comp_rerun/components_rerun_result_table.csv" 
     if not os.path.exists(pred_file):
         return
@@ -219,7 +220,8 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
     prediction_csv =  open(pred_file, "r")
     for line in prediction_csv:
         arr = line.split(',')
-        pred[get_header_id(arr[0])] = arr[1]
+        pred[get_header_id(arr[0])] = arr[1] '''
+
     good = set()
     for line in open(input_file, 'r'):
         if line[0] == "L":

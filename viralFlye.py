@@ -8,7 +8,7 @@ import time
 import datetime
 from os import listdir
 from os.path import isfile, join, exists
-from extract_circulars_metaflye import extract_circulars, extract_linears
+from extract_circulars_metaflye import extract_circulars, extract_linears, extract_circulars_raven, extract_linears_raven
 from extract_small_comps_gfa import  extract_paths_in_components
 from pb_download import download_sra_from_list
 from check_linear_viruses import *
@@ -44,7 +44,9 @@ Details can be found in viralverify and viralcomplete manual''',
     required_args.add_argument('--reads', help='Path to long reads')    
     optional_args = parser.add_argument_group('optional arguments')
     optional_args.add_argument('--min_viral_length', default = 5000, help = 'minimal limit on the viral length under study, default 5k')    
+    parser.add_argument('--raven', dest='raven', action='store_true')
 
+    parser.set_defaults(raven=False)
     
     if len(sys.argv)==1:
         parser.print_help(sys.stderr)
@@ -64,7 +66,11 @@ def run_circular_vv (args):
                 stats = join(fullpath, "assembly_info.txt")
                 circulars = join(fullpath, "circulars.txt")
                 circ_fasta = join(fullpath, "circulars.fasta")
-                extract_circulars(stats, circulars, int(args.min_viral_length))
+                if not args.raven:
+                    extract_circulars(stats, circulars, int(args.min_viral_length))
+                else:
+                    extract_circulars_raven(contigs_all, circulars, int(args.min_viral_length))
+
                 seqtk_line = (f'seqtk subseq {contigs_all} {circulars} > {circ_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
@@ -84,7 +90,11 @@ def run_linear_vv (args):
                 stats = join(fullpath, "assembly_info.txt")
                 linears = join(fullpath, "linears.txt")
                 linears_fasta = join(fullpath, "linears.fasta")
-                extract_linears(stats, linears, int (args.min_viral_length))
+                if not args.raven:
+                    extract_linears(stats, linears, int (args.min_viral_length))
+                else:
+                    extract_linears_raven(contigs_all, join(fullpath, "assembly_graph.gfa"), linears, int (args.min_viral_length))
+
                 seqtk_line = (f'seqtk subseq {contigs_all} {linears} > {linears_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
@@ -121,6 +131,8 @@ def run_vc(args, pref, name):
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
 #linears_virus.fasta -o MO1-2_0.5_check2/
+
+#def run_freebayes(args):
 
     
 def download_and_run(read_dirs, output_dirs):
@@ -162,7 +174,7 @@ def run_on_components (args):
 
 def runall(args):
 #    download_and_run(sys.argv[1], sys.argv[2])
-
+    print (args.raven)
     run_linear_vv(args)
     run_circular_vv(args)  
 

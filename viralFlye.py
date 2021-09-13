@@ -21,11 +21,6 @@ metaflye = "/home/dantipov/other_tools/Flye/bin/flye"
 
 
 
-#freebayes polishing, currently not used
-#bwa index ../assembly.fasta; bwa mem -t 20 ../assembly.fasta /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_1.fastq.gz /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_2.fastq.gz -t 20 | samtools sort -@8 -o assembly.bam
-#./freebayes-parallel <(./fasta_generate_regions.py /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/assembly.fasta.fai 500000) 16 -f /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/assembly.fasta  /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/pilon/assembly.bam > /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/freebayes/assembly.vcf
-#samtools faidx ../assembly.fasta; samtools index assembly.bam; freebayes-parallel <(fasta_generate_regions.py ../assembly.fasta.fai 500000) 16 -f ../assembly.fasta assembly.bam > assembly.vcf
-#bgzip assembly.vcf;  ~/other_tools/bcftools/bcftools index assembly.vcf.gz;  ~/other_tools/bcftools/bcftools consensus -f ../assembly.fasta -o assembly.fasta assembly.vcf.gz
 
 def parse_args(args):
 ###### Command Line Argument Parser
@@ -132,8 +127,14 @@ def run_vc(args, pref, name):
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
 #linears_virus.fasta -o MO1-2_0.5_check2/
 
-#def run_freebayes(args):
+#freebayes polishing, currently not used
+#bwa index ../assembly.fasta; bwa mem -t 20 ../assembly.fasta /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_1.fastq.gz /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_2.fastq.gz -t 20 | samtools sort -@8 -o assembly.bam
+#./freebayes-parallel <(./fasta_generate_regions.py /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/assembly.fasta.fai 500000) 16 -f /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/assembly.fasta  /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/pilon/assembly.bam > /Iceking/dantipov/metaFlye/Aloha/SRR8811961_rr/freebayes/assembly.vcf
+#samtools faidx ../assembly.fasta; samtools index assembly.bam; freebayes-parallel <(fasta_generate_regions.py ../assembly.fasta.fai 500000) 16 -f ../assembly.fasta assembly.bam > assembly.vcf
+#bgzip assembly.vcf;  ~/other_tools/bcftools/bcftools index assembly.vcf.gz;  ~/other_tools/bcftools/bcftools consensus -f ../assembly.fasta -o assembly.fasta assembly.vcf.gz
 
+#def run_freebayes(args):
+        
     
 def download_and_run(read_dirs, output_dirs):
     for dir in listdir(read_dirs):

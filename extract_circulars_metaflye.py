@@ -18,7 +18,7 @@ def extract_circulars_raven(contigs_file, output_file, minlen_limit):
             circulars = int(arr[3].split(':')[2])
             
             if (circulars == 1 and length > minlen_limit and length < maxlength):
-                fo.write(arr[0] + "\n")
+                fo.write(arr[0][1:] + "\n")
 #L       Ctg882442       +       SRR10963010.1217762     +       12046M
 
 def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit):
@@ -37,7 +37,7 @@ def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit):
             reads = int(arr[2].split(':')[2])
             circulars = int(arr[3].split(':')[2])
             if (not(arr[0] in nonisolated) and length > minlen_limit and length < maxlength):
-                fo.write(arr[0] + "\n")
+                fo.write(arr[0][1:] + "\n")
 
 def extract_circulars(info_file, output_file, minlen_limit):
     #fasta = sys.argv[2]

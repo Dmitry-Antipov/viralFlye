@@ -8,7 +8,7 @@ mincov = 10
 
 
 #        >Utg837180 LN:i:9417 RC:i:34 XO:i:1
-def extract_circulars_raven(contigs_file, output_file, minlen_limit):
+def extract_circulars_raven(contigs_file, output_file, minlen_limit, rl):
     fo = open(output_file, "w")
     for line in open(contigs_file, 'r'):
         if line[0] == ">":
@@ -16,12 +16,12 @@ def extract_circulars_raven(contigs_file, output_file, minlen_limit):
             length = int(arr[1].split(':')[2])
             reads = int(arr[2].split(':')[2])
             circulars = int(arr[3].split(':')[2])
-            
-            if (circulars == 1 and length > minlen_limit and length < maxlength):
+            cov = reads * rl / length 
+            if (circulars == 1 and length > minlen_limit and length < maxlength and cov > mincov):
                 fo.write(arr[0][1:] + "\n")
 #L       Ctg882442       +       SRR10963010.1217762     +       12046M
 
-def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit):
+def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit, rl):
     nonisolated = set()
     fo = open(output_file, "w")
 
@@ -36,7 +36,9 @@ def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit):
             length = int(arr[1].split(':')[2])
             reads = int(arr[2].split(':')[2])
             circulars = int(arr[3].split(':')[2])
-            if (not(arr[0] in nonisolated) and length > minlen_limit and length < maxlength):
+            cov = reads * rl / length 
+
+            if (not(arr[0] in nonisolated) and length > minlen_limit and length < maxlength and cov > mincov):
                 fo.write(arr[0][1:] + "\n")
 
 def extract_circulars(info_file, output_file, minlen_limit):

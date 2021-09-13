@@ -64,7 +64,7 @@ def run_circular_vv (args):
                 if not args.raven:
                     extract_circulars(stats, circulars, int(args.min_viral_length))
                 else:
-                    extract_circulars_raven(contigs_all, circulars, int(args.min_viral_length))
+                    extract_circulars_raven(contigs_all, circulars, int(args.min_viral_length),args.rl)
 
                 seqtk_line = (f'seqtk subseq {contigs_all} {circulars} > {circ_fasta}')
                 print (seqtk_line)
@@ -88,7 +88,7 @@ def run_linear_vv (args):
                 if not args.raven:
                     extract_linears(stats, linears, int (args.min_viral_length))
                 else:
-                    extract_linears_raven(contigs_all, join(fullpath, "assembly_graph.gfa"), linears, int (args.min_viral_length))
+                    extract_linears_raven(contigs_all, join(fullpath, "assembly_graph.gfa"), linears, int (args.min_viral_length), args.rl)
 
                 seqtk_line = (f'seqtk subseq {contigs_all} {linears} > {linears_fasta}')
                 print (seqtk_line)
@@ -172,10 +172,41 @@ def run_on_components (args):
                 vv_line =f"viralverify.py -f {comp_fasta} -o {outdir}  --hmm {args.hmm} -t 10"
                 print (vv_line)
                 os.system (vv_line)
+def average_readlength(f):
+    from Bio import SeqIO
+    format = "fasta"
+    arr = os.path.splitext(f)
+    period = 2
+    ext = arr[-1]
+    gzipped = False
+    if ext == ".gz":
+        ext = os.path.splitext(arr[-2])[-1]
+        gzipped = True
+    if ext == ".fastq" or ext == ".fq":    
+        format = "fastq"
+    elif ext == ".fasta" or ext == ".fa":    
+        format = "fasta"
+    else:
+        print("unknown format " + ext)
+        exit()
+    read_count = 0
+    read_l = 0
+    if gzipped:
+        import gzip
+        handle = gzip.open(f, "rt")
+    else:
+        handle = open(f, "rt")
+    for record in SeqIO.parse(handle, format):
+        read_count +=1
+        read_l += len(record.seq)
+    return read_l/read_count
 
 def runall(args):
 #    download_and_run(sys.argv[1], sys.argv[2])
-    print (args.raven)
+#    print (args.raven)
+    if (args.raven):
+        args.rl = average_readlength(args.reads)
+        print (args.rl)
     run_linear_vv(args)
     run_circular_vv(args)  
 

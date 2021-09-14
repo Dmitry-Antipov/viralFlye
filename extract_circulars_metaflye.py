@@ -17,6 +17,7 @@ def extract_circulars_raven(contigs_file, output_file, minlen_limit, rl):
             reads = int(arr[2].split(':')[2])
             circulars = int(arr[3].split(':')[2])
             cov = reads * rl / length 
+#            print (f"{line} {cov} {minlen_limit} {circulars}")
             if (circulars == 1 and length > minlen_limit and length < maxlength and cov > mincov):
                 fo.write(arr[0][1:] + "\n")
 #L       Ctg882442       +       SRR10963010.1217762     +       12046M

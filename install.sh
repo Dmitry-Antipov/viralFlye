@@ -1,4 +1,4 @@
-conda create -n viralflye -c bioconda -c conda-forge  "python>=3.6" prodigal viralverify samtools seqtk minced minimap2 biopython pysam
+conda create -n viralflye -c bioconda -c conda-forge  "python>=3.6" prodigal viralverify samtools seqtk minced minimap2 biopython pysam tabix samtools freebayes bcftools numpy
 CONDA_BASE=$(conda info --base)
 source $CONDA_BASE/etc/profile.d/conda.sh
 conda activate viralflye

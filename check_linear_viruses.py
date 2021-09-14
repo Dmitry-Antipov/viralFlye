@@ -159,7 +159,7 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
     contig_names = []
     for line in open (circulars, 'r'):
         if len(line) > 0 and line[0] == ">":
-            contig_names.append(line.strip()[1:])
+            contig_names.append(line.strip()[1:].split()[0])
 #    split_multifasta(circulars, workdir)
     res = open(join(workdir, "linears.txt"), 'w')
     bam_file = join(workdir,  "long_reads_realignment.bam")

@@ -56,7 +56,7 @@ def run_circular_vv (args):
         if os.path.isdir(fullpath):
             contigs_all = join(fullpath, "assembly.fasta")
             outdir = join(fullpath, "vv_circulars")
-            if os.path.exists (contigs_all) and not os.path.exists(outdir):
+            if os.path.exists (contigs_all):
                 os.mkdir(outdir)
                 stats = join(fullpath, "assembly_info.txt")
                 circulars = join(fullpath, "circulars.txt")

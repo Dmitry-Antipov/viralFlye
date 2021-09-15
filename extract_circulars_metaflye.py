@@ -44,7 +44,6 @@ def extract_linears_raven(contigs_file, graph_file, output_file, minlen_limit, r
 
 def extract_circulars(info_file, output_file, minlen_limit):
     #fasta = sys.argv[2]
-    contigs_list = extract_contigs(info_file, minlen_limit)
     fo = open(output_file, "w")
     for line in open(info_file, 'r'):
         arr = line.split()

@@ -123,7 +123,7 @@ def run_vc(args, pref, name):
         fullpath = join(indir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(indir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'viralcomplete.py -t 10 -thr 0.5 -f {fullpath} -o {outdir}')
+            vc_str = (f'./viralComplete/viralcomplete.py -t 10 -thr 0.5 -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
@@ -154,7 +154,6 @@ def run_freebayes(args):
     print (bcftools_line)
     os.system(bcftools_line)
     args.assembly = join(args.dir, "assembly.cor.fasta")
-#bgzip assembly.vcf;  ~/other_tools/bcftools/bcftools index assembly.vcf.gz;  ~/other_tools/bcftools/bcftools consensus -f ../assembly.fasta -o assembly.cor.fasta assembly.vcf.gz
 
     
 def download_and_run(read_dirs, output_dirs):

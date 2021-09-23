@@ -130,13 +130,13 @@ def construct_graph(edge_component, segments, links):
 
             start_id = edges_to_id[edge_start] * 4 + link_start_shift
             end_id = edges_to_id[edge_end]* 4 + link_end_shift
-            print (f'from link {l} adding edge {start_id} {end_id} ')
+#            print (f'from link {l} adding edge {start_id} {end_id} ')
             vertices[start_id].next.append(end_id)
 
 #rc_Link
             start_id = edges_to_id[edge_start] * 4 + 3 - link_start_shift
             end_id = edges_to_id[edge_end]* 4 + 3 - link_end_shift
-            print(f'from link {l} adding edge {end_id} {start_id} ')
+#            print(f'from link {l} adding edge {end_id} {start_id} ')
             vertices[end_id].next.append(start_id)
     return [vertices, edges_to_id]
 
@@ -144,11 +144,11 @@ def get_start_end_vertex(edge_component, segments, edges_to_id):
     max_l = 0
     max_e = ""
     for e in edge_component:
-        print (f'edge {e} length {segments[e].length}')
+#        print (f'edge {e} length {segments[e].length}')
         if segments[e].length > max_l:
             max_l = segments[e].length
             max_e = e
-    print (max_e)
+#    print (max_e)
     return [edges_to_id[max_e] * 4 + 1, edges_to_id[max_e] * 4]
 
 def run_dikstra(vertices, source):
@@ -191,8 +191,8 @@ def get_furtherst_id(dist):
 
 def restore_path(prev, source, target):
     path = []
-    print (prev)
-    print (f'{source} {target} {prev[target]}')
+#    print (prev)
+#    print (f'{source} {target} {prev[target]}')
 
     while target != source:
         if prev[target] == -1:
@@ -227,7 +227,7 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
         if line[0] == "L":
             arr = get_ids(line)
             if len(arr) == 0:
-                print (line)
+#                print (line)
                 exit()
             neighbours[arr[0]].add(arr[1])
             neighbours[arr[1]].add(arr[0])
@@ -248,7 +248,7 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
     for seq_id in segments:
         s =  get_small_component(seq_id, low_cutoff, high_cutoff, min_coverage, neighbours, global_used, segments)
         if len (s) > 0:
-            print (f'exporing small component of edges {s}')
+#            print (f'exporing small component of edges {s}')
             vertices, edges_to_id = construct_graph(s, segments, links)
 
             [source, target] = get_start_end_vertex(s, segments, edges_to_id)
@@ -258,19 +258,18 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
                 path.append(source)
     # longest path containing longest edge with no cycles:
             else:
-                print (dist)
                 new_end = get_furtherst_id(dist)
-                print (f'new_end {new_end}')
+#                print (f'new_end {new_end}')
                 forward_path = restore_path(prev, source, new_end)
                 target_rc = vertices[target].get_rc_id()
-                print (f'target target_rc {target} {target_rc}')
+#                print (f'target target_rc {target} {target_rc}')
                 [new_dist, new_prev] = run_dikstra(vertices, target_rc)
                 print (new_dist)
                 new_start_rc = get_furtherst_id(new_dist)
-                print(f'new_start_rc {new_start_rc}')
-                print (f'forward_path {forward_path}')
+#                print(f'new_start_rc {new_start_rc}')
+#                print (f'forward_path {forward_path}')
                 backward_path = restore_path(new_prev, target_rc, new_start_rc)
-                print(f'backward_path {backward_path}')
+#                print(f'backward_path {backward_path}')
                 backward_path_rc = []
                 for p in backward_path:
                     backward_path_rc.append(vertices[p].get_rc_id())
@@ -286,12 +285,12 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
                 total_cov += segments[e].cov * segments[e].length
             res = ""
             for v in path:
-                print (v)
+#                print (v)
                 res += vertices[v].seq
             path_len = len(res)
             header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
             for v in path:
-                print (f'{v} {vertices[v].edge}')
+#                print (f'{v} {vertices[v].edge}')
                 if v%2 == 1:
                     header += vertices[v].edge
                     header += vertices[v].orientation

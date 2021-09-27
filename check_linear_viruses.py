@@ -85,11 +85,11 @@ def extract_suspicious_depth(depth_file):
     good_right = []
     for i in peaks:
         if (ratios[i] > jump):
-           print (f'{i + window_size} {ratios[i]} right')
+#           print (f'{i + window_size} {ratios[i]} right')
            good_right.append(i + window_size)
     for i in reverse_peaks:
         if (ratios[i] < 1/jump):
-           print (f'{i + window_size} {ratios[i]} left')
+#           print (f'{i + window_size} {ratios[i]} left')
            good_left.append(i + window_size)
     if len(good_right) < 1 or len(good_left) < 1:
         print('suspicious breakpoints not found')
@@ -104,6 +104,7 @@ def extract_suspicious_depth(depth_file):
             print (f'distance is not similar to a repeat {right - left}')
             return [-1, -1, genome_len]
         else:
+            print (f'TDR repeat of length {right - left} found!')
             return [left, right, genome_len]
 
 

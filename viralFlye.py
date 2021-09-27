@@ -41,6 +41,10 @@ Details can be found in viralverify and viralcomplete manual''',
     optional_args.add_argument('--min_viral_length', default = 5000, help = 'minimal limit on the viral length under study, default 5k')    
     optional_args.add_argument('--ill1', default = '', help = "file with left illumina reads for polishing")
     optional_args.add_argument('--ill2', default = '', help = "file with right illumina reads for polishing")
+    optional_args.add_argument('--outdir', default = '', help = "output directory, default - the assembler's output dir")
+    optional_args.add_argument('--completeness', default = 0.5, help = "Completeness cutoff for viralComplete,  default - 50%")
+    optional_args.add_argument('--threads', default = 10, help = "Threads used, default - 10")
+        
     parser.add_argument('--raven', dest='raven', action='store_true')
 
     parser.set_defaults(raven=False)
@@ -71,7 +75,7 @@ def run_circular_vv (args):
                 seqtk_line = (f'seqtk subseq {contigs_all} {circulars} > {circ_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
-                vv_line =f"viralverify -f {circ_fasta} -o {outdir}  --hmm {args.hmm} -t 10"
+                vv_line =f"viralverify -f {circ_fasta} -o {outdir}  --hmm {args.hmm} -t {args.threads}"
                 print (vv_line)
                 os.system (vv_line)
 
@@ -95,7 +99,7 @@ def run_linear_vv (args):
                 seqtk_line = (f'seqtk subseq {contigs_all} {linears} > {linears_fasta}')
                 print (seqtk_line)
                 os.system(seqtk_line)
-                vv_line = f"viralverify -f  {linears_fasta}  -o {outdir}  --hmm {hmms}  -t 10"
+                vv_line = f"viralverify -f  {linears_fasta}  -o {outdir}  --hmm {hmms}  -t {args.threads}"
                 print (vv_line)
                 os.system (vv_line)
 
@@ -111,7 +115,7 @@ def run_linear_check(args):
             all_contigs = args.assembly
 #            reads = join(sys.argv[2], )
             if os.path.exists(circ_fasta):
-                prepare_index_and_depth(circ_fasta, all_contigs, args.reads, os.path.join(os.path.dirname(circ_fasta), "linear_check"))
+                prepare_index_and_depth(circ_fasta, all_contigs, args.reads, join(args.outdir, "linear_check"))
 
              #   linear_check_line = (f'./check_linear_viruses.py {circ_fasta} {args.reads} {linear_check_res}')
              #   print (linear_check_line)
@@ -121,9 +125,9 @@ def run_vc(args, pref, name):
         indir = args.dir
 #     for dir in listdir(indir):
         fullpath = join(indir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
-        outdir = join(indir, "vc_" + pref)    
+        outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'./viralComplete/viralcomplete.py -t 10 -thr 0.5 -f {fullpath} -o {outdir}')
+            vc_str = (f'./viralComplete/viralcomplete.py -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
@@ -139,7 +143,7 @@ def run_freebayes(args):
     #bgzip samtools freebayes bcftools
     args.bam = join(args.dir, "assembly.bam")
     args.vcf = join(args.dir, "assembly.vcf")
-    bwa_line = f'bwa index {args.assembly}; bwa mem -t 20 {args.assembly} {args.ill1} {args.ill2} -t 20 | samtools sort -@8 -o {args.bam}'
+    bwa_line = f'bwa index {args.assembly}; bwa mem -t {args.threads} {args.assembly} {args.ill1} {args.ill2}  | samtools sort -@8 -o {args.bam}'
     print (bwa_line)
     os.system(bwa_line)
     samtools_line =f'samtools faidx {args.assembly}; samtools index {args.bam}'
@@ -181,15 +185,16 @@ def download_and_run(read_dirs, output_dirs):
         
 def run_on_components (args):
         fullpath = args.dir
+        outpath = args.outdir
         if os.path.isdir(fullpath):
             graph_all = args.graph
-            outdir = join(fullpath, "vv_components")
+            outdir = join(outpath, "vv_components")
             if os.path.exists (graph_all):
 # and not os.path.exists(outdir):
 #                os.mkdir(outdir)
-                comp_fasta = join(fullpath, "components.fasta")
+                comp_fasta = join(outpath, "components.fasta")
                 extract_paths_in_components(graph_all, 5000, 1000000, 10, comp_fasta)
-                vv_line =f"viralverify -f {comp_fasta} -o {outdir}  --hmm {args.hmm} -t 10"
+                vv_line =f"viralverify -f {comp_fasta} -o {outdir}  --hmm {args.hmm} -t {args.threads}"
                 print (vv_line)
                 os.system (vv_line)
 def average_readlength(f):
@@ -221,25 +226,30 @@ def average_readlength(f):
         read_l += len(record.seq)
     return read_l/read_count
 
-def runall(args):
-#    download_and_run(sys.argv[1], sys.argv[2])
-#    print (args.raven)
+def prepare_args(args):
     if (args.raven):
         args.rl = average_readlength(args.reads)
         print (args.rl)
     args.assembly = join(args.dir, "assembly.fasta")
     args.graph = join(args.dir, "assembly_graph.gfa")
+    if args.outdir == '':
+        args.outdir = args.dir
+
+def runall(args):
+    
+
+    prepare_args(args)
+    
     if args.ill1!= '':
         run_freebayes(args)
     
     run_linear_vv(args)
     run_circular_vv(args)  
 
+#Each following tool looks for intermediate results in dir. That's more convinient for reruns, but should be outdir in final version
     run_vc(args, "linears", "linears")
-    run_vc(args, "circulars", "circulars")
-
-    run_on_components(args)
-
+    run_vc(args, "circulars", "circulars")  
+    run_on_components(args) 
     run_linear_check(args)
 
 

@@ -280,20 +280,24 @@ def extract_paths_in_components(input_file, low_cutoff, high_cutoff, min_coverag
     #            exit()
             sum_len = 0
             total_cov = 0
+            sum_cov = 0
             for e in s:
                 sum_len += segments[e].length
+                sum_cov += segments[e].cov
                 total_cov += segments[e].cov * segments[e].length
             res = ""
             for v in path:
 #                print (v)
                 res += vertices[v].seq
             path_len = len(res)
+#>Utg61358 LN:i:45259 RC:i:17 XO:i:1
             header = f'edges_{len(s)}_length_{path_len}_total_{sum_len}_'
             for v in path:
 #                print (f'{v} {vertices[v].edge}')
                 if v%2 == 1:
                     header += vertices[v].edge
                     header += vertices[v].orientation
+            header += f' LN:i:{sum_len} RC:i:{sum_cov:.0f}'
             if sum_len * 0.3 > path_len:
                 print(f'Path is small ({path_len} of {sum_len}). Complex component of {len(s)} edges. Header: {header}')
             else:

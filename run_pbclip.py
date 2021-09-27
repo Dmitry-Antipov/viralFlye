@@ -28,16 +28,19 @@ def run_all_assemblies(reads, outdir, type):
     metaFlye_path = "/home/dantipov/other_tools/Flye-2.8.3/bin/flye"
     metaFlye_V_path = "/home/dantipov/other_tools/Flye/bin/flye"
     canu_run_str = f'{canu_path} -{type} {reads}  -maxThreads=8 -d {join(outdir, "canu")} -genomeSize=500M -p canu_asm maxInputCoverage=10000 corOutCoverage=10000 corMhapSensitivity=high corMinCoverage=0 redMemory=32 oeaMemory=32 batMemory=200'
-    print (canu_run_str)     
+#    print (canu_run_str)     
 #--meta --pacbio-raw /Iceking/dantipov/data/japanese/ES1-2/clipped.fasta /Iceking/dantipov/data/japanese/ES9-1/clipped.fasta --threads 30 --o /Iceking/dantipov/metaFlye/japanese/ES_all_clipped --genome-size 500M
-    flye_suff = f' --meta --{type} {reads} --threads 20 --resume --o '
+    flye_suff = f' --meta --{type} {reads} --threads 20 --o '
     os.makedirs(join(outdir, "metaflye2.8.3"), exist_ok=True)
-    os.makedirs(join(outdir, "metaflye_2.9.1774"), exist_ok=True)
+    mf_dir = join(outdir, "metaflye_2.9.1774")
+    if os.path.exists(join(mf_dir, "assembly.fasta")):
+        return
+    os.makedirs(mf_dir, exist_ok=True)
     
     metaFlye_str = metaFlye_path + flye_suff + join(outdir, "metaflye2.8.3")
 
-    metaFlye_V_str = metaFlye_V_path + " --scaffold " + flye_suff +   join(outdir, "metaflye_2.9.1774") 
-    print(metaFlye_str)
+    metaFlye_V_str = metaFlye_V_path + " --scaffold " + flye_suff +   join(outdir, mf_dir) 
+#    print(metaFlye_str)
     print (metaFlye_V_str)
 #    os.system(canu_run_str)
 #    os.system(metaFlye_str)

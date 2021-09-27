@@ -246,7 +246,7 @@ def runall(args):
     run_linear_vv(args)
     run_circular_vv(args)  
 
-#Each following tool looks for intermediate results in dir. That's more convinient for reruns, but should be outdir in final version
+#Each following tool looks for intermediate results in input dir. That's more convinient for reruns, but should be outdir in final version
     run_vc(args, "linears", "linears")
     run_vc(args, "circulars", "circulars")  
     run_on_components(args) 

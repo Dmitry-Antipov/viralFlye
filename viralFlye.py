@@ -61,12 +61,12 @@ def run_circular_vv (args):
         fullpath = args.dir
         if os.path.isdir(fullpath):
             contigs_all = args.assembly
-            outdir = join(fullpath, "vv_circulars")
+            outdir = join(args.outdir, "vv_circulars")
             if os.path.exists (contigs_all):
                 os.makedirs(outdir, exist_ok=True)
                 stats = join(fullpath, "assembly_info.txt")
-                circulars = join(fullpath, "circulars.txt")
-                circ_fasta = join(fullpath, "circulars.fasta")
+                circulars = join(outdir, "circulars.txt")
+                circ_fasta = join(outdir, "circulars.fasta")
                 if not args.raven:
                     extract_circulars(stats, circulars, int(args.min_viral_length))
                 else:
@@ -84,13 +84,13 @@ def run_linear_vv (args):
         hmms = args.hmm
         if os.path.isdir(fullpath):
             contigs_all = args.assembly
-            outdir = join(fullpath, "vv_linears")
+            outdir = join(args.outdir, "vv_linears")
             if os.path.exists (contigs_all):
 # and not os.path.exists(join(outdir, "Prediction_results_fasta")):
                 os.makedirs(outdir, exist_ok=True)
                 stats = join(fullpath, "assembly_info.txt")
-                linears = join(fullpath, "linears.txt")
-                linears_fasta = join(fullpath, "linears.fasta")
+                linears = join(outdir, "linears.txt")
+                linears_fasta = join(outdir, "linears.fasta")
                 if not args.raven:
                     extract_linears(stats, linears, int (args.min_viral_length))
                 else:
@@ -124,7 +124,7 @@ def run_linear_check(args):
 def run_vc(args, pref, name):
         indir = args.dir
 #     for dir in listdir(indir):
-        fullpath = join(indir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
+        fullpath = join(args.outdir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
             vc_str = (f'./viralComplete/viralcomplete.py -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
@@ -141,8 +141,8 @@ def run_vc(args, pref, name):
 
 def run_freebayes(args):
     #bgzip samtools freebayes bcftools
-    args.bam = join(args.dir, "assembly.bam")
-    args.vcf = join(args.dir, "assembly.vcf")
+    args.bam = join(args.outdir, "assembly.bam")
+    args.vcf = join(args.outdir, "assembly.vcf")
     bwa_line = f'bwa index {args.assembly}; bwa mem -t {args.threads} {args.assembly} {args.ill1} {args.ill2}  | samtools sort -@8 -o {args.bam}'
     print (bwa_line)
     os.system(bwa_line)
@@ -154,10 +154,10 @@ def run_freebayes(args):
     subprocess.call(['bash', '-c', freebayes_line])
     print(freebayes_line)
  #   os.system(freebayes_line)  
-    bcftools_line = f'bgzip {args.vcf} --force;  bcftools index {args.vcf}.gz;  bcftools consensus -f {args.assembly} -o {join(args.dir, "assembly.cor.fasta")} {args.vcf}.gz'
+    bcftools_line = f'bgzip {args.vcf} --force;  bcftools index {args.vcf}.gz;  bcftools consensus -f {args.assembly} -o {join(args.outdir, "assembly.cor.fasta")} {args.vcf}.gz'
     print (bcftools_line)
     os.system(bcftools_line)
-    args.assembly = join(args.dir, "assembly.cor.fasta")
+    args.assembly = join(args.outdir, "assembly.cor.fasta")
 
     
 def download_and_run(read_dirs, output_dirs):
@@ -234,24 +234,35 @@ def prepare_args(args):
     args.graph = join(args.dir, "assembly_graph.gfa")
     if args.outdir == '':
         args.outdir = args.dir
+    os.makedirs(args.outdir, exist_ok=True)
+    if args.outdir != args.dir:
+        os.system (f'cp {args.assembly} {args.outdir}')
+        args.assembly = join(args.outdir, "assembly.fasta")
+
+def copy_all_results(args):
+#    print (f'cp {join(args.outdir, "vv_circulars", "Prediction_results_fasta", "linear_check", "linears.txt")} {join(args.outdir,"CircularDisconnector.txt")}')
+    
+    os.system(f'cp {join(args.outdir, "vv_circulars", "Prediction_results_fasta", "linear_check", "linears.txt")} {join(args.outdir,"CircularDisconnector.txt")}')
+    os.system(f'cp {join(args.outdir, "vc_circulars","Prediction_results_fasta","complete_viruses.fasta")}  {join(args.outdir,"circulars_viralFlye.fasta")}')
+    os.system(f'cp {join(args.outdir, "vc_linears","Prediction_results_fasta","complete_viruses.fasta")}  {join(args.outdir,"linears_viralFlye.fasta")}')
+    os.system(f'cp {join(args.outdir, "vv_components","Prediction_results_fasta","components_virus.fasta")}  {join(args.outdir,"components_viralFlye.fasta")}')
 
 def runall(args):
-    
+   
 
     prepare_args(args)
     
     if args.ill1!= '':
         run_freebayes(args)
-    
+
     run_linear_vv(args)
     run_circular_vv(args)  
 
-#Each following tool looks for intermediate results in input dir. That's more convinient for reruns, but should be outdir in final version
     run_vc(args, "linears", "linears")
     run_vc(args, "circulars", "circulars")  
     run_on_components(args) 
     run_linear_check(args)
-
+    copy_all_results(args)
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])

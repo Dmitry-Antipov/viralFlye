@@ -1,25 +1,15 @@
 This is a support repo for "Assembling viruses and identifying their hosts from long-read metagenomics data"
 
-Requirements
-----------
-* python 3.*
-* hmmsearch
-* prodigal
-* samtools
-* seqtk
-* minced
-* minimap2
-* [Flye](https://github.com/fenderglass/Flye) genome assembler 
-* [viralVerify](https://github.com/ablab/viralVerify)
-* [viralComplete](https://github.com/ablab/viralComplete)
+To install you should run ./install.sh , which installs all required packages via conda.
+---
+Input
+To run viralFlye.py, you'll need a directory with metaflye(any version) output, set of HMMs used for viral verification (can be downloaded from Pfam-A, ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/) and original long reads.
+Additional options are shown when running viralFlye script without parameters.
 
-
-All mentioned tools should be in your $PATH.
-
-
+---
 Output
----------
-Information about circular and linear complete viruses can be found in `vc_circulars` and `vc_linears` subfolders in metaflye output folder.
-Viral components can be found in `vv_components` subfolder. All viruses (including incomplete) can be found in `vv_circulars` and `vv_linears` subfolders. Coordinates of falsely circularized viruses detected by CircularDisconnector are in `<metaflye output folder>/vv_circulars/Prediction_results_fasta/linear_check/linears.txt`. Details can be found in viralVerify and viralComplete user manuals.
+viralFlye output can be found in the outdir directory (by default, equal to the input directory)
+It consists of 3 fasta files, linears_viralFlye.fasta, components_viralFlye.fasta and circulars_viralFlye.fasta, and a txt file that lists all erroneously circularized components.
+
 
 Prediction of hosts within the sample is performed by a separate script `crispr_host_match.py`. It takes metaFlye result as an input, extracts circular and linear isolated contigs,predicts viruses and CRISPR spacers and matches them using BLAST. Result (BLAST output format 6) can be found in `blast.out` file in the output folder.

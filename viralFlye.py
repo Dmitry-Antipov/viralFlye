@@ -242,7 +242,7 @@ def prepare_args(args):
 def copy_all_results(args):
 #    print (f'cp {join(args.outdir, "vv_circulars", "Prediction_results_fasta", "linear_check", "linears.txt")} {join(args.outdir,"CircularDisconnector.txt")}')
     
-    os.system(f'cp {join(args.outdir, "vv_circulars", "Prediction_results_fasta", "linear_check", "linears.txt")} {join(args.outdir,"CircularDisconnector.txt")}')
+    os.system(f'cp {join(args.outdir, "linear_check", "linears.txt")} {join(args.outdir,"CircularDisconnector.txt")}')
     os.system(f'cp {join(args.outdir, "vc_circulars","Prediction_results_fasta","complete_viruses.fasta")}  {join(args.outdir,"circulars_viralFlye.fasta")}')
     os.system(f'cp {join(args.outdir, "vc_linears","Prediction_results_fasta","complete_viruses.fasta")}  {join(args.outdir,"linears_viralFlye.fasta")}')
     os.system(f'cp {join(args.outdir, "vv_components","Prediction_results_fasta","components_virus.fasta")}  {join(args.outdir,"components_viralFlye.fasta")}')

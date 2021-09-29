@@ -168,6 +168,8 @@ def prepare_index_and_depth(circulars, assembly, reads, workdir):
     print(bam_line)
     os.system(bam_line)
     os.system(f'samtools index {bam_file}')
+    res.write(f'contig_id\tleft_repeat_coord\tright_repeat_coord\trepeat_length \n')
+
     for contig in contig_names:
         depth_file = join(workdir, f'{contig}.depth')
         bam_contig =  join(workdir, f'{contig}.bam')

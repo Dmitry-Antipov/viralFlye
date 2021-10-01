@@ -42,7 +42,7 @@ Details can be found in viralverify and viralcomplete manual''',
     optional_args.add_argument('--ill1', default = '', help = "file with left illumina reads for polishing")
     optional_args.add_argument('--ill2', default = '', help = "file with right illumina reads for polishing")
     optional_args.add_argument('--outdir', default = '', help = "output directory, default - the assembler's output dir")
-    optional_args.add_argument('--completeness', default = 0.5, help = "Completeness cutoff for viralComplete,  default - 50%")
+    optional_args.add_argument('--completeness', default = 0.5, help = "Completeness cutoff for viralComplete,  default - 0.5")
     optional_args.add_argument('--threads', default = 10, help = "Threads used, default - 10")
         
     parser.add_argument('--raven', dest='raven', action='store_true')
@@ -149,7 +149,7 @@ def run_freebayes(args):
     samtools_line =f'samtools faidx {args.assembly}; samtools index {args.bam}'
     print(samtools_line)
     os.system(samtools_line)
-    freebayes_line = f'freebayes-parallel <(./fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
+    freebayes_line = f'freebayes-parallel <(python3 fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
     import subprocess
     subprocess.call(['bash', '-c', freebayes_line])
     print(freebayes_line)

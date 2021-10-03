@@ -18,6 +18,7 @@ import argparse
 #Not used
 pbclip = "/home/dantipov/other_tools/pbclip/pbclip"
 metaflye = "/home/dantipov/other_tools/Flye/bin/flye"
+PYTHON = sys.executable
 
 
 
@@ -121,7 +122,7 @@ def run_vc(args, pref, name):
         fullpath = join(args.outdir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'python3 {join(os.path.dirname(os.path.abspath(__file__)),"viralComplete","viralcomplete.py")} -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
+            vc_str = (f'{PYTHON} {join(os.path.dirname(os.path.abspath(__file__)),"viralComplete","viralcomplete.py")} -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
@@ -143,7 +144,7 @@ def run_freebayes(args):
     samtools_line =f'samtools faidx {args.assembly}; samtools index {args.bam}'
     print(samtools_line)
     os.system(samtools_line)
-    freebayes_line = f'freebayes-parallel <(python3 fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
+    freebayes_line = f'freebayes-parallel <({PYTHON} fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
     import subprocess
     subprocess.call(['bash', '-c', freebayes_line])
     print(freebayes_line)

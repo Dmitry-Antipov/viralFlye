@@ -19,7 +19,7 @@ This will create a conda environment viralFlye which contain all dependencies.
 You also need the Pham HMM database for viral genome identification. If you don't have it yet, download using:
 
 ```
-wget': wget http://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam34.0/Pfam-A.hmm.gz
+wget http://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam34.0/Pfam-A.hmm.gz
 ```
 
 Running viralFlye
@@ -54,3 +54,39 @@ and a txt file that lists all erroneously circularized components.
 Prediction of hosts within the sample is performed by a separate script `crispr_host_match.py`. 
 It takes metaFlye result as an input, extracts circular and linear isolated contigs,predicts viruses and CRISPR spacers and matches them using BLAST. 
 Result (BLAST output format 6) can be found in `blast.out` file in the output folder.
+
+Dependencies
+-----------
+
+viralFlye package depends on the following software
+
+* [viralVerify](https://github.com/ablab/viralVerify)
+* [viralComplete](https://github.com/ablab/viralComplete)
+* prodigal 
+* samtools 
+* seqtk 
+* minced 
+* minimap2 
+* biopython 
+* pysam 
+* samtools
+* freebayes
+* bcftools
+* numpy
+* scipy
+
+
+License
+-------
+
+viralFlye is distributed under a BSD license. See the [LICENSE file](LICENSE) for details.
+
+
+Credits
+-------
+
+Code contributors:
+
+* Dmitry Antipov (Center for AlgorithmicBiotechnology, Saint PetersburgState University)
+* Mikhail Rayko  (Center for AlgorithmicBiotechnology, Saint PetersburgState University)
+* Mikhail Kolmogorov (University of California, Santa Cruz)

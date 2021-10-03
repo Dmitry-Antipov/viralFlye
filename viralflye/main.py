@@ -261,6 +261,9 @@ def main():
         parser.print_help(sys.stderr)
         sys.exit(1)
     indir = sys.argv[1]
+    if not os.path.exists(os.path.join(args.dir, "assembly.fasta")):
+        print("Flye assembly directory not found: ", args.dir)
+        sys.exit(1)
     runall(args)
 #    for dir in os.listdir(indir):
 #        runall(join(indir,dir))

@@ -8,7 +8,7 @@ import re
 from genericpath import isdir, exists
 from os.path import join
 from joblib import Parallel, delayed
-import check_mash
+import viralflye.check_mash
 
 
 

@@ -11,6 +11,7 @@ To install viralFlye locally, run:
 
 ```
 git clone https://github.com/Dmitry-Antipov/viralFlye
+cd viralFlye
 install.sh
 ```
 
@@ -74,6 +75,7 @@ viralFlye package depends on the following software
 * bcftools
 * numpy
 * scipy
+* BLAST
 
 
 License

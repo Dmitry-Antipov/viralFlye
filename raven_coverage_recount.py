@@ -52,8 +52,8 @@ def average_readlength(f):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
-    rl = average_readlength(args.reads)
-#    rl = 3300.0
+#    rl = average_readlength(args.reads)
+    rl = 2100
     print (f'average read length: {rl}')
     count = 0
     outcontigs = open(args.filtered_contigs, 'w')

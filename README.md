@@ -1,6 +1,6 @@
 This is a support repo for "Assembling viruses and identifying their hosts from long-read metagenomics data"
 
-To install you should run ./install.sh , which installs all required packages via conda.
+To install you should run ./install.sh , which installs all required packages via conda. Then enviroment viralFlye should be activated.
 ---
 Input
 To run viralFlye.py, you'll need a directory with metaflye(any version) output, set of HMMs used for viral verification (can be downloaded from Pfam-A, ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/) and original long reads.

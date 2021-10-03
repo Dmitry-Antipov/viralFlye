@@ -24,13 +24,8 @@ metaflye = "/home/dantipov/other_tools/Flye/bin/flye"
 
 def parse_args(args):
 ###### Command Line Argument Parser
-    parser = argparse.ArgumentParser(description=f'''Wrapper script for viralFlye pipeline \n
-Usage: {sys.argv[0]} <metaflye_output_folder>
-Circular complete viruses can be found in vc_circ and vc_linears subfolders in metaflye_output_folder
-Viral components can be found in vv_components subfolder
-All viruses (including incomplete) can be found in vv_circulars and vv_linears
-CircularDisconnector results are in vv_circulars/linear_check/ subfolder
-Details can be found in viralverify and viralcomplete manual''',
+    parser = argparse.ArgumentParser(description=f'''Wrapper script for viralFlye pipeline \n 
+See readme for details''',
     formatter_class=argparse.RawTextHelpFormatter)
     parser._action_groups.pop()
     required_args = parser.add_argument_group('required arguments')
@@ -127,7 +122,7 @@ def run_vc(args, pref, name):
         fullpath = join(args.outdir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'./viralComplete/viralcomplete.py -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
+            vc_str = (f'python3 {join(os.path.dirname(os.path.abspath(__file__)),"viralComplete","viralcomplete.py")} -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
@@ -159,7 +154,7 @@ def run_freebayes(args):
     os.system(bcftools_line)
     args.assembly = join(args.outdir, "assembly.cor.fasta")
 
-    
+
 def download_and_run(read_dirs, output_dirs):
     for dir in listdir(read_dirs):
 #FAKO_1
@@ -248,16 +243,12 @@ def copy_all_results(args):
     os.system(f'cp {join(args.outdir, "vv_components","Prediction_results_fasta","components_virus.fasta")}  {join(args.outdir,"components_viralFlye.fasta")}')
 
 def runall(args):
-   
-
     prepare_args(args)
-    
     if args.ill1!= '':
         run_freebayes(args)
-
+        args.assembly = join(args.outdir, "assembly.cor.fasta")
     run_linear_vv(args)
-    run_circular_vv(args)  
-
+    run_circular_vv(args)
     run_vc(args, "linears", "linears")
     run_vc(args, "circulars", "circulars")  
     run_on_components(args) 

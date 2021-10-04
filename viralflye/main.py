@@ -122,11 +122,9 @@ def run_vc(args, pref, name):
         fullpath = join(args.outdir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'viralcomplete.py -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
+            vc_str = (f'viralcomplete -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
-#/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/
-#linears_virus.fasta -o MO1-2_0.5_check2/
 
 #freebayes polishing, currently not used
 #bwa index ../assembly.fasta; bwa mem -t 20 ../assembly.fasta /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_1.fastq.gz /Bmo/dantipov/data/metaFlye_viral/Aloha/SRR8811963_2.fastq.gz -t 20 | samtools sort -@8 -o assembly.bam

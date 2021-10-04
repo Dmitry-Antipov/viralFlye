@@ -122,7 +122,7 @@ def run_vc(args, pref, name):
         fullpath = join(args.outdir, "vv_" + pref, "Prediction_results_fasta",name +"_virus.fasta")  
         outdir = join(args.outdir, "vc_" + pref)    
         if os.path.exists(fullpath):
-            vc_str = (f'{PYTHON} {join(os.path.dirname(os.path.abspath(__file__)),"viralComplete","viralcomplete.py")} -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
+            vc_str = (f'viralcomplete.py -t {args.threads} -thr {args.completeness} -f {fullpath} -o {outdir}')
             print(vc_str)
             os.system(vc_str)
 #/Bmo/dantipov/tools/viralComplete/viralcomplete.py -thr 0.5 -f /Iceking/dantipov/metaFlye/japanese/MO1-2_clipped/vv_linears/Prediction_results_fasta/

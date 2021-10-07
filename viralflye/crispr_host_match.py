@@ -60,7 +60,7 @@ os.system(f"cat {outdir}/circular.fasta {outdir}/isolated.fasta > {outdir}/merge
 
 print ("Predicting viruses...")
 
-os.system(f"viralverify.py  -f {outdir}/merged.fasta -p -o {outdir}/viralverify --hmm {hmm} -t 15")
+os.system(f"viralverify  -f {outdir}/merged.fasta -p -o {outdir}/viralverify --hmm {hmm} -t 15")
 
 print ("Blasting...")
 

@@ -252,6 +252,7 @@ def runall(args):
     run_on_components(args) 
     run_linear_check(args)
     copy_all_results(args)
+    print ("viralFlye pipeline finished!")
 
 def main():
     args = parse_args(sys.argv[1:])

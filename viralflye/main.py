@@ -99,7 +99,7 @@ def run_linear_vv (args):
                 os.system (vv_line)
 
 def run_linear_check(args):
-        fullpath = args.dir
+        fullpath = args.outdir
         reads = args.reads
 #     for dir in listdir(indir):
 #        fullpath = join(indir, dir)    

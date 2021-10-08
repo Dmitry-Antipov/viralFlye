@@ -89,6 +89,6 @@ Credits
 
 Code contributors:
 
-* Dmitry Antipov (Center for AlgorithmicBiotechnology, Saint PetersburgState University)
-* Mikhail Rayko  (Center for AlgorithmicBiotechnology, Saint PetersburgState University)
+* Dmitry Antipov (Center for Algorithmic Biotechnology, Saint Petersburg State University)
+* Mikhail Rayko  (Center for Algorithmic Biotechnology, Saint Petersburg State University)
 * Mikhail Kolmogorov (University of California, Santa Cruz)

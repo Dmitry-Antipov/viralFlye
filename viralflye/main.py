@@ -142,7 +142,7 @@ def run_freebayes(args):
     samtools_line =f'samtools faidx {args.assembly}; samtools index {args.bam}'
     print(samtools_line)
     os.system(samtools_line)
-    freebayes_line = f'freebayes-parallel <({PYTHON} fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
+    freebayes_line = f'freebayes-parallel <(fasta_generate_regions.py {args.assembly}.fai 500000) 16 -f {args.assembly} {args.bam} > {args.vcf}'
     import subprocess
     subprocess.call(['bash', '-c', freebayes_line])
     print(freebayes_line)

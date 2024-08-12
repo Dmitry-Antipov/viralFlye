@@ -17,6 +17,8 @@ install.sh
 
 This will create a conda environment viralFlye which contain all dependencies.
 
+Alternatively, viralFlye can be installed through bioconda, https://bioconda.github.io/recipes/viralflye/README.html
+
 You also need the Pham HMM database for viral genome identification. If you don't have it yet, download using:
 
 ```
